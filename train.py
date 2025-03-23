@@ -52,7 +52,7 @@ def compose_text_with_templates(text: str, templates=imagenet_templates) -> list
     return [template.format(text) for template in templates]
 
 with torch.no_grad():
-    template_text = compose_text_with_templates("Water", imagenet_templates)
+    template_text = compose_text_with_templates("Zdzis³aw Beksiñski painting", imagenet_templates)
     tokens = clip.tokenize(template_text).to("cuda")
     text_features = clip_model.encode_text(tokens).detach()
     text_features = text_features.mean(axis=0, keepdim=True)
@@ -63,13 +63,26 @@ with torch.no_grad():
     text_source = clip_model.encode_text(tokens_source).detach()
     text_source = text_source.mean(axis=0, keepdim=True)
     text_source /= text_source.norm(dim=-1, keepdim=True)
+    
+    text_direction = (text_features-text_source)
+    text_direction /= text_direction.norm(dim=-1, keepdim=True)
 
+    
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
     first_iter = 0
     tb_writer = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians)
     gaussians.training_setup(opt)
+    
+    with torch.no_grad():
+        for cam in scene.getTrainCameras().copy():
+            gt_image = cam.original_image.cuda()
+            source_features = clip_model.encode_image(clip_normalize(gt_image.unsqueeze(0)))
+            source_features /= (source_features.clone().norm(dim=-1, keepdim=True))
+            cam.features = get_features(img_normalize(gt_image), VGG)
+            cam.original_image = source_features
+            
     if checkpoint:
         #(model_params, first_iter) = torch.load(checkpoint)
         (model_params, _) = torch.load(checkpoint)
@@ -127,7 +140,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         gt_image = viewpoint_cam.original_image.cuda()
         #Ll1 = l1_loss(image, gt_image)
         #loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image))
-        gt_features = get_features(img_normalize(gt_image), VGG)
+        #gt_features = get_features(img_normalize(gt_image), VGG)
+        gt_features = viewpoint_cam.features
         render_features = get_features(img_normalize(image), VGG)
         loss_c = 0
         loss_c += torch.mean((gt_features['conv4_2'] - render_features['conv4_2']) ** 2)
@@ -145,17 +159,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         image_features = clip_model.encode_image(clip_normalize(img_aug))
         image_features /= (image_features.clone().norm(dim=-1, keepdim=True))
-        
-        source_features = clip_model.encode_image(clip_normalize(gt_image.unsqueeze(0)))
-        source_features /= (source_features.clone().norm(dim=-1, keepdim=True))
-        
+    
+        source_features = gt_image
         img_direction = (image_features-source_features)
         img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
         
-        text_direction = (text_features-text_source).repeat(image_features.size(0),1)
-        text_direction /= text_direction.norm(dim=-1, keepdim=True)
-        
-        loss_temp = (1- torch.cosine_similarity(img_direction, text_direction, dim=1))
+        loss_temp = (1- torch.cosine_similarity(img_direction, text_direction.repeat(image_features.size(0),1), dim=1))
         loss_temp[loss_temp<0.7] =0
         loss_patch+=loss_temp[loss_temp!=0.0].mean()
         
@@ -165,12 +174,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         img_direction = (render_features-source_features)
         img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
         
-        text_direction = (text_features-text_source).repeat(render_features.size(0),1)
-        text_direction /= text_direction.norm(dim=-1, keepdim=True)
+        loss_d = (1- torch.cosine_similarity(img_direction, text_direction.repeat(render_features.size(0),1), dim=1)).mean()
         
-        loss_d = (1- torch.cosine_similarity(img_direction, text_direction, dim=1)).mean()
-        
-        loss = 500 * loss_d + 9000 * loss_patch + 50 * loss_c
+        loss = 500 * loss_d + 9000 * loss_patch + 80 * loss_c
         loss.backward()
 
         iter_end.record()
@@ -185,7 +191,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 progress_bar.close()
 
             # Log and save
-            training_report(tb_writer, iteration, Ll1, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background))
+            training_report(tb_writer, iteration, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background))
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
@@ -235,9 +241,8 @@ def prepare_output_and_logger(args):
         print("Tensorboard not available: not logging progress")
     return tb_writer
 
-def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs):
+def training_report(tb_writer, iteration, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs):
     if tb_writer:
-        tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
         tb_writer.add_scalar('train_loss_patches/total_loss', loss.item(), iteration)
         tb_writer.add_scalar('iter_time', elapsed, iteration)
 
