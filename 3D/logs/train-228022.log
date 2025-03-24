@@ -1,0 +1,13 @@
+Optimizing output/lego
+Output folder: output/lego [24/03 23:09:59]
+Found transforms_train.json file, assuming Blender data set! [24/03 23:09:59]
+Reading Training Transforms [24/03 23:09:59]
+Reading Test Transforms [24/03 23:10:02]
+Loading Training Cameras [24/03 23:10:08]
+Loading Test Cameras [24/03 23:10:10]
+Number of points at initialisation :  100000 [24/03 23:10:10]
+Starry Night by Vincent van Gogh [24/03 23:10:10]
+
+[ITER 5000] Saving Gaussians [24/03 23:21:55]
+
+Training complete. [24/03 23:21:57]
