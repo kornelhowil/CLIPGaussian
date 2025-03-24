@@ -85,13 +85,12 @@ class GaussianModel:
         self.max_radii2D, 
         xyz_gradient_accum, 
         denom,
-        #opt_dict, 
-        _,
+        opt_dict, 
         self.spatial_lr_scale) = model_args
-        #self.training_setup(training_args)
-        #self.xyz_gradient_accum = xyz_gradient_accum
-        #self.denom = denom
-        #self.optimizer.load_state_dict(opt_dict)
+        self.training_setup(training_args)
+        self.xyz_gradient_accum = xyz_gradient_accum
+        self.denom = denom
+        self.optimizer.load_state_dict(opt_dict)
         self.training_setup(training_args)
 
     @property

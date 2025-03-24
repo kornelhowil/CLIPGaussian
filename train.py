@@ -51,29 +51,41 @@ augment = transforms.Compose([
 def compose_text_with_templates(text: str, templates=imagenet_templates) -> list:
     return [template.format(text) for template in templates]
 
-with torch.no_grad():
-    template_text = compose_text_with_templates("Zdzis³aw Beksiñski painting", imagenet_templates)
-    tokens = clip.tokenize(template_text).to("cuda")
-    text_features = clip_model.encode_text(tokens).detach()
-    text_features = text_features.mean(axis=0, keepdim=True)
-    text_features /= text_features.norm(dim=-1, keepdim=True)
+def get_style_embedding(style_prompt, style_image):
+    with torch.no_grad():
+        if style_image is None:
+            print(style_prompt)
+            template_text = compose_text_with_templates(style_prompt, imagenet_templates)
+            tokens = clip.tokenize(template_text).to("cuda")
+            style_features = clip_model.encode_text(tokens).detach()
+            style_features = style_features.mean(axis=0, keepdim=True)
+            style_features /= style_features.norm(dim=-1, keepdim=True)
+            
+        template_source = compose_text_with_templates("a Photo", imagenet_templates)
+        tokens_source = clip.tokenize(template_source).to("cuda")
+        text_source = clip_model.encode_text(tokens_source).detach()
+        text_source = text_source.mean(axis=0, keepdim=True)
+        text_source /= text_source.norm(dim=-1, keepdim=True)
+        
+        style_direction = (style_features-text_source)
+        style_direction /= style_direction.norm(dim=-1, keepdim=True)
+        return style_direction
     
-    template_source = compose_text_with_templates("a Photo", imagenet_templates)
-    tokens_source = clip.tokenize(template_source).to("cuda")
-    text_source = clip_model.encode_text(tokens_source).detach()
-    text_source = text_source.mean(axis=0, keepdim=True)
-    text_source /= text_source.norm(dim=-1, keepdim=True)
+def training(dataset, opt, pipe, args):
+    testing_iterations = args.test_iterations
+    saving_iterations = args.save_iterations
+    checkpoint_iterations = args.checkpoint_iterations
+    checkpoint = args.start_checkpoint
+    debug_from = args.debug_from
     
-    text_direction = (text_features-text_source)
-    text_direction /= text_direction.norm(dim=-1, keepdim=True)
-
-    
-def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
     first_iter = 0
     tb_writer = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians)
+    gaussians.load_ply(args.ply_path)
     gaussians.training_setup(opt)
+    
+    style_direction = get_style_embedding(args.style_prompt, args.style_image)
     
     with torch.no_grad():
         for cam in scene.getTrainCameras().copy():
@@ -84,8 +96,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             cam.original_image = source_features
             
     if checkpoint:
-        #(model_params, first_iter) = torch.load(checkpoint)
-        (model_params, _) = torch.load(checkpoint)
+        (model_params, first_iter) = torch.load(checkpoint)
         gaussians.restore(model_params, opt)
 
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
@@ -118,10 +129,6 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         gaussians.update_learning_rate(iteration)
 
-        # Every 1000 its we increase the levels of SH up to a maximum degree
-        if iteration % 1000 == 0:
-            gaussians.oneupSHdegree()
-
         # Pick a random Camera
         if not viewpoint_stack:
             viewpoint_stack = scene.getTrainCameras().copy()
@@ -136,18 +143,14 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         render_pkg = render(viewpoint_cam, gaussians, pipe, bg)
         image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
 
-        # Loss
+        # Content Loss
         gt_image = viewpoint_cam.original_image.cuda()
-        #Ll1 = l1_loss(image, gt_image)
-        #loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image))
-        #gt_features = get_features(img_normalize(gt_image), VGG)
         gt_features = viewpoint_cam.features
         render_features = get_features(img_normalize(image), VGG)
         loss_c = 0
         loss_c += torch.mean((gt_features['conv4_2'] - render_features['conv4_2']) ** 2)
         loss_c += torch.mean((gt_features['conv5_2'] - render_features['conv5_2']) ** 2)
-        
-        loss_patch=0 
+        # Patch CLIP loss
         img_proc =[]
         for n in range(64):
             target_crop = cropper(image.unsqueeze(0))
@@ -155,28 +158,27 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             img_proc.append(target_crop)
 
         img_proc = torch.cat(img_proc,dim=0)
-        img_aug = img_proc
-
-        image_features = clip_model.encode_image(clip_normalize(img_aug))
+        image_features = clip_model.encode_image(clip_normalize(img_proc))
         image_features /= (image_features.clone().norm(dim=-1, keepdim=True))
     
         source_features = gt_image
         img_direction = (image_features-source_features)
         img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
         
-        loss_temp = (1- torch.cosine_similarity(img_direction, text_direction.repeat(image_features.size(0),1), dim=1))
+        loss_temp = (1- torch.cosine_similarity(img_direction, style_direction.repeat(image_features.size(0),1), dim=1))
         loss_temp[loss_temp<0.7] =0
-        loss_patch+=loss_temp[loss_temp!=0.0].mean()
+        loss_patch = loss_temp[loss_temp!=0.0].mean()
         
+        # Direction CLIP loss
         render_features = clip_model.encode_image(clip_normalize(image.unsqueeze(0)))
         render_features /= (render_features.clone().norm(dim=-1, keepdim=True))
         
         img_direction = (render_features-source_features)
         img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
         
-        loss_d = (1- torch.cosine_similarity(img_direction, text_direction.repeat(render_features.size(0),1), dim=1)).mean()
+        loss_d = (1- torch.cosine_similarity(img_direction, style_direction.repeat(render_features.size(0),1), dim=1)).mean()
         
-        loss = 500 * loss_d + 9000 * loss_patch + 80 * loss_c
+        loss = opt.lambda_dir * loss_d + opt.lambda_patch * loss_patch + opt.lambda_c * loss_c
         loss.backward()
 
         iter_end.record()
@@ -196,20 +198,6 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
 
-            # Densification
-            """
-            if iteration < opt.densify_until_iter:
-                # Keep track of max radii in image-space for pruning
-                gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
-                gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
-
-                if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
-                    size_threshold = 20 if iteration > opt.opacity_reset_interval else None
-                    gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold)
-                
-                if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
-                    gaussians.reset_opacity()
-            """
             # Optimizer step
             if iteration < opt.iterations:
                 gaussians.optimizer.step()
@@ -292,6 +280,12 @@ if __name__ == "__main__":
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)
+    
+    parser.add_argument("--style_prompt", type=str, default = None)
+    parser.add_argument("--style_image", type=str, default = None)
+    
+    parser.add_argument("--ply_path", type=str, default = None)
+    
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
@@ -303,7 +297,10 @@ if __name__ == "__main__":
     # Start GUI server, configure and run training
     network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
+    training(lp.extract(args),
+             op.extract(args),
+             pp.extract(args),
+             args)
 
     # All done
     print("\nTraining complete.")
