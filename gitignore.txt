@@ -1,0 +1,6 @@
+*__pycache__*
+*mirror*
+output
+Dockerfile
+submodules
+.DS_Store

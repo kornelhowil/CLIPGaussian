@@ -1,0 +1,1 @@
+Namespace(data_device='cuda', eval=False, images='images', model_path='output/lego', resolution=-1, sh_degree=3, source_path='/shared/results/z1216473/lego', white_background=False)
