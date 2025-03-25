@@ -24,7 +24,7 @@ from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
 
 from scene.VGG import get_features
-from utils.image_utils import img_normalize, clip_normalize
+from utils.image_utils import img_normalize, clip_normalize, load_image
 from torchvision import models, transforms
 from template import imagenet_templates
 import clip
@@ -60,6 +60,10 @@ def get_style_embedding(style_prompt, style_image):
             style_features = clip_model.encode_text(tokens).detach()
             style_features = style_features.mean(axis=0, keepdim=True)
             style_features /= style_features.norm(dim=-1, keepdim=True)
+        else:
+            style_image = load_image(style_image).to("cuda")
+            style_features = clip_model.encode_image(clip_normalize(style_image))
+            style_features /= (style_features.clone().norm(dim=-1, keepdim=True))
             
         template_source = compose_text_with_templates("a Photo", imagenet_templates)
         tokens_source = clip.tokenize(template_source).to("cuda")

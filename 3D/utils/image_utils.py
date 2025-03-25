@@ -11,6 +11,8 @@
 
 import torch
 import torch.nn.functional as F
+from PIL import Image
+from torchvision import transforms
 
 def mse(img1, img2):
     return (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
@@ -45,4 +47,18 @@ def clip_normalize(image):
     std = std.view(1,-1,1,1)
 
     image = (image-mean)/std
+    return image
+
+def load_image(img_path, img_height=None,img_width =None):
+    
+    image = Image.open(img_path)
+    if img_width is not None:
+        image = image.resize((img_width, img_height))  # change image size to (3, img_size, img_size)
+    
+    transform = transforms.Compose([
+                        transforms.ToTensor(),
+                        ])   
+
+    image = transform(image)[:3, :, :].unsqueeze(0)
+
     return image
