@@ -90,6 +90,8 @@ class OptimizationParams(ParamGroup):
         self.lambda_c = 0.8
         self.lambda_dir = 5
         self.lambda_patch = 90
+        self.crop_size = 128
+        self.num_crops = 64
         super().__init__(parser, "Optimization Parameters")
 
 def get_combined_args(parser : ArgumentParser):

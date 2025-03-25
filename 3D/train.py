@@ -40,13 +40,7 @@ VGG.to("cuda")
 
 clip_model, preprocess = clip.load('ViT-B/32', "cuda", jit=False)
 
-cropper = transforms.Compose([
-    transforms.RandomCrop(128)
-])
-augment = transforms.Compose([
-    transforms.RandomPerspective(fill=0, p=1,distortion_scale=0.5),
-    transforms.Resize(224)
-])
+
 
 def compose_text_with_templates(text: str, templates=imagenet_templates) -> list:
     return [template.format(text) for template in templates]
@@ -90,6 +84,14 @@ def training(dataset, opt, pipe, args):
     gaussians.training_setup(opt)
     
     style_direction = get_style_embedding(args.style_prompt, args.style_image)
+    
+    cropper = transforms.Compose([
+        transforms.RandomCrop(opt.crop_size)
+    ])
+    augment = transforms.Compose([
+        transforms.RandomPerspective(fill=0, p=1,distortion_scale=0.5),
+        transforms.Resize(224)
+    ])
     
     with torch.no_grad():
         for cam in scene.getTrainCameras().copy():
@@ -156,7 +158,7 @@ def training(dataset, opt, pipe, args):
         loss_c += torch.mean((gt_features['conv5_2'] - render_features['conv5_2']) ** 2)
         # Patch CLIP loss
         img_proc =[]
-        for n in range(64):
+        for n in range(opt.num_crops):
             target_crop = cropper(image.unsqueeze(0))
             target_crop = augment(target_crop)
             img_proc.append(target_crop)
