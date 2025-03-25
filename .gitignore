@@ -4,3 +4,5 @@ output
 Dockerfile
 submodules
 .DS_Store
+*.log
+*.err
