@@ -32,6 +32,12 @@ import json
 import time
 import numpy as np
 
+from scene.VGG import get_features
+from utils.image_utils import img_normalize, clip_normalize, load_image
+from torchvision import models, transforms
+from template import imagenet_templates
+import clip
+
 try:
     from torch.utils.tensorboard import SummaryWriter
 
@@ -39,21 +45,73 @@ try:
 except ImportError:
     TENSORBOARD_FOUND = False
 
+VGG = models.vgg19(weights='DEFAULT').features
+VGG.to("cuda")
 
-def training(gs_type, dataset: ModelParams, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint,
-             debug_from, save_xyz):
+clip_model, preprocess = clip.load('ViT-B/32', "cuda", jit=False)
+
+def compose_text_with_templates(text: str, templates=imagenet_templates) -> list:
+    return [template.format(text) for template in templates]
+
+def get_style_embedding(style_prompt, style_image):
+    with torch.no_grad():
+        if style_image is None:
+            print(style_prompt)
+            template_text = compose_text_with_templates(style_prompt, imagenet_templates)
+            tokens = clip.tokenize(template_text).to("cuda")
+            style_features = clip_model.encode_text(tokens).detach()
+            style_features = style_features.mean(axis=0, keepdim=True)
+            style_features /= style_features.norm(dim=-1, keepdim=True)
+        else:
+            style_image = load_image(style_image).to("cuda")
+            style_features = clip_model.encode_image(clip_normalize(style_image))
+            style_features /= (style_features.clone().norm(dim=-1, keepdim=True))
+            
+        template_source = compose_text_with_templates("a Photo", imagenet_templates)
+        tokens_source = clip.tokenize(template_source).to("cuda")
+        text_source = clip_model.encode_text(tokens_source).detach()
+        text_source = text_source.mean(axis=0, keepdim=True)
+        text_source /= text_source.norm(dim=-1, keepdim=True)
+        
+        style_direction = (style_features-text_source)
+        style_direction /= style_direction.norm(dim=-1, keepdim=True)
+        return style_direction
+
+def training(gs_type, dataset: ModelParams, opt, pipe, args):
+    
+    testing_iterations = args.test_iterations
+    saving_iterations = args.save_iterations
+    checkpoint_iterations = args.checkpoint_iterations
+    checkpoint = args.start_checkpoint
+    debug_from = args.debug_from
+    
     time_start = time.process_time()
     init_time = time.time()
     first_iter = 0
     tb_writer = prepare_output_and_logger(dataset)
     frames = len(os.listdir(f'{dataset.source_path}/original'))
     gaussians = gaussianModel[gs_type](dataset.sh_degree, dataset.poly_degree, frames)
-
     scene = Scene(dataset, gaussians)
+    gaussians.load_ply(args.ply_path)
     gaussians.training_setup(opt)
-    if checkpoint:
-        (model_params, first_iter) = torch.load(checkpoint)
-        gaussians.restore(model_params, opt)
+    
+    style_direction = get_style_embedding(args.style_prompt, args.style_image)
+    
+    cropper = transforms.Compose([
+        transforms.RandomCrop(opt.crop_size)
+    ])
+    augment = transforms.Compose([
+        transforms.RandomPerspective(fill=0, p=1,distortion_scale=0.5),
+        transforms.Resize(224)
+    ])
+    
+    with torch.no_grad():
+        for cam in scene.getTrainCameras().copy():
+            gt_image = cam.original_image.cuda()
+            source_features = clip_model.encode_image(clip_normalize(gt_image.unsqueeze(0)))
+            source_features /= (source_features.clone().norm(dim=-1, keepdim=True))
+            cam.features = get_features(img_normalize(gt_image), VGG)
+            cam.original_image = source_features
 
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
@@ -64,7 +122,6 @@ def training(gs_type, dataset: ModelParams, opt, pipe, testing_iterations, savin
     viewpoint_stack = None
     
     ema_loss_for_log = 0.0
-    ema_psnr_for_log = 0.0 
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
     viewpoint_cameras = scene.getTrainCameras()
@@ -72,8 +129,7 @@ def training(gs_type, dataset: ModelParams, opt, pipe, testing_iterations, savin
     
     for iteration in range(first_iter, opt.iterations + 1):
         os.makedirs(f"{scene.model_path}/xyz", exist_ok=True)
-        if save_xyz and (iteration % 5000 == 1 or iteration == opt.iterations):
-            torch.save(gaussians.get_xyz, f"{scene.model_path}/xyz/{iteration}.pt")
+
 
         iter_start.record()
 
@@ -84,43 +140,55 @@ def training(gs_type, dataset: ModelParams, opt, pipe, testing_iterations, savin
             gaussians.oneupSHdegree()
 
         # Pick a random Camera
+        # Pick a random Camera
         if not viewpoint_stack:
-            chunks = int(len(viewpoint_cameras) / opt.batch_size)
-            viewpoint_stack = list(np.array_split(np.random.permutation(len(viewpoint_cameras)), chunks))
-            viewpoint_stack = [(i, cam) for i, cam in enumerate(viewpoint_stack)]
-
-        viewpoint_cams = []
-        idx = randint(0, len(viewpoint_stack) - 1)
-        idx, idxs = viewpoint_stack.pop(idx)
-        for i in idxs:
-           viewpoint_cams.append(viewpoint_cameras[i]) 
-
+            viewpoint_stack = scene.getTrainCameras().copy()
+        viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
+        
         # Render
         if (iteration - 1) == debug_from:
             pipe.debug = True
 
         bg = torch.rand((3), device="cuda") if opt.random_background else background
-        outputs = []
-            
-        for viewpoint_cam in viewpoint_cams:
-            render_pkg = render(viewpoint_cam, gaussians, pipe, bg)
-            render_pkg["gt"] = viewpoint_cam.get_image(bg, opt.random_background).cuda()
-            outputs.append(render_pkg)
+        
+        render_pkg = render(viewpoint_cam, gaussians, pipe, bg)
+        image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
+       
+        # Content Loss
+        gt_image = viewpoint_cam.original_image.cuda()
+        gt_features = viewpoint_cam.features
+        render_features = get_features(img_normalize(image), VGG)
+        loss_c = 0
+        loss_c += torch.mean((gt_features['conv4_2'] - render_features['conv4_2']) ** 2)
+        loss_c += torch.mean((gt_features['conv5_2'] - render_features['conv5_2']) ** 2)
+        # Patch CLIP loss
+        img_proc =[]
+        for n in range(opt.num_crops):
+            target_crop = cropper(image.unsqueeze(0))
+            target_crop = augment(target_crop)
+            img_proc.append(target_crop)
 
-        data = {}
-        for k in outputs[0].keys():
-            if k == "viewspace_points":
-                data[k] = [output[k] for output in outputs]
-            elif k in ["visibility_filter", "radii"]:
-                data[k] = [output[k] for output in outputs]
-            elif k in ["render", "gt", "mask"]:
-                data[k] = torch.stack([output[k] for output in outputs], dim=0)
-
-        data['mask_t'] = torch.stack(data['visibility_filter'], dim=-1).any(dim=1)
-        # Loss
-        Ll1 = l1_loss(data["render"], data["gt"])
-        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(data["render"], data["gt"]))
-        psnr_ = psnr(data["render"], data["gt"]).mean().double()
+        img_proc = torch.cat(img_proc,dim=0)
+        image_features = clip_model.encode_image(clip_normalize(img_proc))
+        image_features /= (image_features.clone().norm(dim=-1, keepdim=True))
+    
+        source_features = gt_image
+        img_direction = (image_features-source_features)
+        img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
+        
+        loss_temp = (1- torch.cosine_similarity(img_direction, style_direction.repeat(image_features.size(0),1), dim=1))
+        loss_temp[loss_temp<0.7] =0
+        loss_patch = loss_temp[loss_temp!=0.0].mean()
+        # Direction CLIP loss
+        render_features = clip_model.encode_image(clip_normalize(image.unsqueeze(0)))
+        render_features /= (render_features.clone().norm(dim=-1, keepdim=True))
+        
+        img_direction = (render_features-source_features)
+        img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
+        
+        loss_d = (1- torch.cosine_similarity(img_direction, style_direction.repeat(render_features.size(0),1), dim=1)).mean()
+        
+        loss = opt.lambda_dir * loss_d + opt.lambda_patch * loss_patch + opt.lambda_c * loss_c
         loss.backward()
 
         iter_end.record()
@@ -128,44 +196,19 @@ def training(gs_type, dataset: ModelParams, opt, pipe, testing_iterations, savin
         with torch.no_grad():
             # Progress bar
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
-            ema_psnr_for_log = 0.4 * psnr_ + 0.6 * ema_psnr_for_log
             total_point = gaussians._xyz.shape[0]
             if iteration % 100 == 0:
-                progress_bar.set_postfix({"Loss": f"{ema_loss_for_log:.{7}f}",
-                                          "psnr": f"{psnr_:.{2}f}",
-                                          "point":f"{total_point}"})
+                progress_bar.set_postfix({"Loss": f"{ema_loss_for_log:.{7}f}"})
                 progress_bar.update(100)
             if iteration == opt.iterations:
                 progress_bar.close()
 
             # Log and save
-            training_report(tb_writer, iteration, Ll1, loss, l1_loss, iter_start.elapsed_time(iter_end),
+            training_report(tb_writer, iteration, loss, l1_loss, iter_start.elapsed_time(iter_end),
                             testing_iterations, scene, render, (pipe, background))
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
-
-            # Densification
-            
-            if iteration < 15000:
-                # Keep track of max radii in image-space for pruning
-                radii_batch = torch.stack(data['radii'], dim=-1).max(dim=-1)[0]
-                visibility_filter_batch = data["mask_t"]
-                gaussians.max_radii2D[visibility_filter_batch] = torch.max(
-                    gaussians.max_radii2D[visibility_filter_batch],
-                    radii_batch[visibility_filter_batch]
-                )
-                xyscreen = data['viewspace_points']
-                gaussians.add_densification_stats(xyscreen, visibility_filter_batch)
-                    
-                if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
-                    size_threshold = 20 if iteration > opt.opacity_reset_interval else None
-                    gaussians.densify_and_prune(opt.densify_grad_threshold, 0.01, scene.cameras_extent,
-                                                size_threshold)
-                
-                if iteration % opt.opacity_reset_interval == 0 or (
-                        dataset.white_background and iteration == opt.densify_from_iter):
-                    gaussians.reset_opacity()
                 
             # Optimizer step
             if iteration < opt.iterations:
@@ -207,10 +250,9 @@ def prepare_output_and_logger(args):
     return tb_writer
 
 
-def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_iterations, scene: Scene, renderFunc,
+def training_report(tb_writer, iteration, loss, l1_loss, elapsed, testing_iterations, scene: Scene, renderFunc,
                     renderArgs):
     if tb_writer:
-        tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
         tb_writer.add_scalar('train_loss_patches/total_loss', loss.item(), iteration)
         tb_writer.add_scalar('iter_time', elapsed, iteration)
 
@@ -255,7 +297,6 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
             tb_writer.add_scalar(config['name'] + '/loss_viewpoint - psnr', psnr_test, iteration)
 
         if tb_writer:
-            tb_writer.add_histogram("scene/opacity_histogram", scene.gaussians.get_opacity, iteration)
             tb_writer.add_scalar('total_points', scene.gaussians.get_xyz.shape[0], iteration)
         torch.cuda.empty_cache()
 
@@ -269,14 +310,17 @@ if __name__ == "__main__":
     parser.add_argument("--num_pts", type=int, default=100_000)
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[5_000, 10_000, 15_000, 20_000, 25_000, 30_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[30_000])
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default=None)
-    parser.add_argument("--save_xyz", action='store_true')
     parser.add_argument("--poly_degree", type=int, default=7)
-    parser.add_argument("--batch_size", type=int, default=3)
+    
+    parser.add_argument("--style_prompt", type=str, default = None)
+    parser.add_argument("--style_image", type=str, default = None)
+    
+    parser.add_argument("--ply_path", type=str, default = None)
 
     lp = ModelParams(parser)
     args, _ = parser.parse_known_args(sys.argv[1:])
@@ -289,7 +333,6 @@ if __name__ == "__main__":
     op = optimizationParamTypeCallbacks[args.gs_type](parser)
     pp = PipelineParams(parser)
     args = parser.parse_args(sys.argv[1:])
-    op.batch_size = args.batch_size
 
     args.save_iterations.append(args.iterations)
 
@@ -304,8 +347,7 @@ if __name__ == "__main__":
     training(
         args.gs_type,
         lp.extract(args), op.extract(args), pp.extract(args),
-        args.test_iterations, args.save_iterations, args.checkpoint_iterations,
-        args.start_checkpoint, args.debug_from, args.save_xyz
+        args
     )
 
     # All done

@@ -33,6 +33,7 @@ class Camera(nn.Module):
         self.image_name = image_name
         self.norm_data = norm_data
         self.time = time
+        self.features = None
 
         try:
             self.data_device = torch.device(data_device)

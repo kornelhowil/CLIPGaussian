@@ -202,10 +202,10 @@ class GaussianModel:
             {'params': [self._opacity], 'lr': training_args.opacity_lr, "name": "opacity"},
             {'params': [self._scaling], 'lr': training_args.scaling_lr, "name": "scaling"},
             {'params': [self._rotation], 'lr': training_args.rotation_lr, "name": "rotation"},
-            {'params': [self.m], 'lr': 0.001, "name": "m"},
-            {'params': [self.sigma], 'lr': 0.001, "name": "sigma"},
-            {'params': [self._w1], 'lr': 0.001, "name": "w1"},
-            {'params': [self.time_func], 'lr': 0.001, "name": "time_func"}
+            #{'params': [self.m], 'lr': 0.0001, "name": "m"},
+            #{'params': [self.sigma], 'lr': 0.0001, "name": "sigma"},
+            #{'params': [self._w1], 'lr': 0.0001, "name": "w1"},
+            #{'params': [self.time_func], 'lr': 0.001, "name": "time_func"}
         ]
 
         self.optimizer = torch.optim.Adam(l, lr=0.0, eps=1e-15)
@@ -352,7 +352,7 @@ class GaussianModel:
         self.m = nn.Parameter(torch.tensor(m, dtype=torch.float, device="cuda").requires_grad_(True))
         self.sigma = nn.Parameter(torch.tensor(sigma, dtype=torch.float, device="cuda").unsqueeze(-1).requires_grad_(True))
         self._w1 = nn.Parameter(torch.tensor(w1, dtype=torch.float, device="cuda").requires_grad_(True))
-        self.time_func = nn.Parameter(torch.tensor(time_func, dtype=torch.float, device="cuda").requires_grad_(True))
+        self.time_func = nn.Parameter(torch.tensor(time_func, dtype=torch.float, device="cuda").requires_grad_(False))
         self.polynomial_degree = len(w1_names) // 2
         self.active_sh_degree = self.max_sh_degree
 
