@@ -95,6 +95,13 @@ def training(gs_type, dataset: ModelParams, opt, pipe, args):
     gaussians.load_ply(args.ply_path)
     gaussians.training_setup(opt)
     
+    #with torch.no_grad():
+    #    print(gaussians.get_opacity.shape)
+    #    prune_mask = (gaussians.get_opacity < 0.01).squeeze()
+    #    gaussians.prune_points(prune_mask)
+    #    print(gaussians.get_opacity.shape)
+
+    
     style_direction = get_style_embedding(args.style_prompt, args.style_image)
     
     cropper = transforms.Compose([

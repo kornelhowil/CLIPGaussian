@@ -199,7 +199,7 @@ class GaussianModel:
             {'params': [self._xyz], 'lr': training_args.position_lr_init * self.spatial_lr_scale, "name": "xyz"},
             {'params': [self._features_dc], 'lr': training_args.feature_lr, "name": "f_dc"},
             {'params': [self._features_rest], 'lr': training_args.feature_lr / 20.0, "name": "f_rest"},
-            {'params': [self._opacity], 'lr': training_args.opacity_lr, "name": "opacity"},
+            #{'params': [self._opacity], 'lr': training_args.opacity_lr, "name": "opacity"},
             {'params': [self._scaling], 'lr': training_args.scaling_lr, "name": "scaling"},
             {'params': [self._rotation], 'lr': training_args.rotation_lr, "name": "rotation"},
             #{'params': [self.m], 'lr': 0.0001, "name": "m"},
@@ -398,19 +398,23 @@ class GaussianModel:
         self._xyz = optimizable_tensors["xyz"]
         self._features_dc = optimizable_tensors["f_dc"]
         self._features_rest = optimizable_tensors["f_rest"]
-        self._opacity = optimizable_tensors["opacity"]
+        #self._opacity = optimizable_tensors["opacity"]
+        self._opacity = self._opacity[valid_points_mask]
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
-        self.m = optimizable_tensors["m"]
-        self.sigma = optimizable_tensors["sigma"]
-        self._w1 = optimizable_tensors["w1"]
+        #self.m = optimizable_tensors["m"]
+        #self.sigma = optimizable_tensors["sigma"]
+        #self._w1 = optimizable_tensors["w1"]
+        self.m = self.m[valid_points_mask]
+        self.sigma = self.sigma[valid_points_mask]
+        self._w1 = self._w1[valid_points_mask]
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
         self.m_gradient_accum = self.m_gradient_accum[valid_points_mask]
 
         self.denom = self.denom[valid_points_mask]
         self.m_denom = self.m_denom[valid_points_mask]
-        self.max_radii2D = self.max_radii2D[valid_points_mask]
+        #self.max_radii2D = self.max_radii2D[valid_points_mask]
 
     def cat_tensors_to_optimizer(self, tensors_dict):
         optimizable_tensors = {}
