@@ -184,8 +184,9 @@ def training(gs_type, dataset: ModelParams, opt, pipe, args):
         img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
         
         loss_temp = (1- torch.cosine_similarity(img_direction, style_direction.repeat(image_features.size(0),1), dim=1))
-        loss_temp[loss_temp<0.7] =0
-        loss_patch = loss_temp[loss_temp!=0.0].mean()
+        #loss_temp[loss_temp<0.7] =0
+        #loss_patch = loss_temp[loss_temp!=0.0].mean()
+        loss_patch = loss_temp.mean()
         # Direction CLIP loss
         render_features = clip_model.encode_image(clip_normalize(image.unsqueeze(0)))
         render_features /= (render_features.clone().norm(dim=-1, keepdim=True))
