@@ -53,7 +53,7 @@ clip_model, preprocess = clip.load('ViT-B/32', "cuda", jit=False)
 def compose_text_with_templates(text: str, templates=imagenet_templates) -> list:
     return [template.format(text) for template in templates]
 
-def get_style_embedding(style_prompt, style_image):
+def get_style_embedding(style_prompt, style_image, object_prompt):
     with torch.no_grad():
         if style_image is None:
             print(style_prompt)
@@ -67,7 +67,7 @@ def get_style_embedding(style_prompt, style_image):
             style_features = clip_model.encode_image(clip_normalize(style_image))
             style_features /= (style_features.clone().norm(dim=-1, keepdim=True))
             
-        template_source = compose_text_with_templates("a Photo", imagenet_templates)
+        template_source = compose_text_with_templates(object_prompt, imagenet_templates)
         tokens_source = clip.tokenize(template_source).to("cuda")
         text_source = clip_model.encode_text(tokens_source).detach()
         text_source = text_source.mean(axis=0, keepdim=True)
@@ -102,7 +102,7 @@ def training(gs_type, dataset: ModelParams, opt, pipe, args):
     #    print(gaussians.get_opacity.shape)
 
     
-    style_direction = get_style_embedding(args.style_prompt, args.style_image)
+    style_direction = get_style_embedding(args.style_prompt, args.style_image, args.object_prompt)
     
     cropper = transforms.Compose([
         transforms.RandomCrop(opt.crop_size)
@@ -327,6 +327,7 @@ if __name__ == "__main__":
     
     parser.add_argument("--style_prompt", type=str, default = None)
     parser.add_argument("--style_image", type=str, default = None)
+    parser.add_argument("--object_prompt", type=str, default = "a Photo")
     
     parser.add_argument("--ply_path", type=str, default = None)
 
