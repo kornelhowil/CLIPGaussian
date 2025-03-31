@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="D-MiSo: Editing Dynamic 3D Scenes using Multi-Gaussians Soup">
+  <meta name="keywords" content="Gaussian Splatting, D-NeRF">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>D-MiSo</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">D-MiSo: Editing Dynamic 3D Scenes using
+            Multi-Gaussians Soup</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="">Joanna Waczyńska</a><sup>1*</sup>,</span>
+            <span class="author-block">
+              <a href="">Piotr Borycki</a><sup>1*</sup>,</span>
+            <span class="author-block">
+              <a href="">Joanna Kaleta</a><sup>2</sup>,</span>
+            <span class="author-block">
+              <a href="">Sławomir Tadeja</a><sup>3</sup>,</span>
+            <span class="author-block">
+              <a href="">Przemysław Spurek</a><sup>1</sup>,</span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Jagiellonian University,</span>
+            <span class="author-block"><sup>2</sup>Warsaw University of Technology,</span>
+            <span class="author-block"><sup>3</sup>University of Cambridge</span><br>
+            <span class="author-block"><sup>*</sup>Equal contribution</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2405.14276"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/waczjoan/D-MiSo"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Over the past years, we have observed an abundance of approaches for modeling dynamic 3D scenes using Gaussian Splatting (GS). 
+            Such solutions use GS to represent the scene's structure and the neural network to model dynamics. 
+            Such approaches allow fast rendering and extracting each element of such a dynamic scene. 
+            However, modifying such objects over time is challenging. SC-GS (Sparse Controlled Gaussian Splatting) enhanced with Deformed Control Points partially solves this issue.
+            However, this approach necessitates selecting elements that need to be kept fixed, as well as centroids that should be adjusted throughout editing.
+            Moreover, this task poses additional difficulties regarding the re-productivity of such editing.
+          </p>
+          <p>
+            To address this, we propose Dynamic Multi-Gaussian Soup (D-MiSo), which allows us to model the mesh-inspired representation of dynamic GS. Additionally, we propose a strategy of linking parameterized Gaussian splats, forming a Triangle Soup with the estimated mesh. Consequently, we can separately construct new trajectories for the 3D objects composing the scene. Thus, we can make the scene's dynamic editable over time or while maintaining partial dynamics.
+          </p>
+          <p>
+            Below one can see the scheme of our model architecture
+          </p>
+         
+        </div>
+        
+      </div>
+    </div>
+    <!--/ Abstract. -->
+    <img src="./static/images/model_scheme.png" alt="Pipeline scheme" width="100%">
+      <h6 class="subtitle has-text-centered">
+        <span class="dnerf">D-MiSo</span> model scheme
+      </h6>
+  </div>
+</section>
+
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-balls">
+          <video poster="" id="balls" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/hellwarrior.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-balls">
+          <video poster="" id="balls" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/hook.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-balls">
+          <video poster="" id="balls" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/jump.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-balls">
+          <video poster="" id="balls" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/mutant.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-balls">
+          <video poster="" id="balls" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/standup.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-balls">
+          <video poster="" id="balls" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/trex.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        
+      </div>
+    </div>
+    <h2 class="subtitle has-text-centered">
+      <span>Results obtained by <span class="dnerf">D-MiSo</span> on D-NeRF dataset.
+    </h2>
+  </div>
+</section>
+
+
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-balls">
+          <video poster="" id="balls" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/dnerf_balls_moving.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-hellwarrior">
+          <video poster="" id="hellwarrior" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/dnerf_hellwarrior_moving_hand.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item standup">
+          <video poster="" id="standup" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/dnerf_standup_moving_hand.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item trex">
+          <video poster="" id="trex" autoplay controls muted loop playsinline width="100%">
+            <source src="./static/videos/dnerf_trex_waving.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+    <h2 class="subtitle has-text-centered">
+      <span>Animations obtained by using <span class="dnerf">D-MiSo</span> on D-NeRF dataset.
+    </h2>
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre>@Article{waczyńska2024dmiso,
+      author         = {Joanna Waczyńska and Piotr Borycki and Joanna Kaleta and Sławomir Tadeja and Przemysław Spurek},
+      title          = {D-MiSo: Editing Dynamic 3D Scenes using Multi-Gaussians Soup}, 
+      year           = {2024},
+      eprint         = {2405.14276},
+      archivePrefix  = {arXiv},
+      primaryClass   = {cs.CV}
+}
+</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer" style="padding: 25px 0px 25px 0px">
+  <div class="columns is-centered">
+    <div class="column is-8">
+      <div class="content">
+        <p style="text-align: center">
+          This website is licensed under a <a rel="license"
+                                              href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+          Commons Attribution-ShareAlike 4.0 International License</a>.
+        </p>
+        <p style="text-align: center">
+          The souce code is borrowed from <a href="https://github.com/nerfies/nerfies.github.io">nerfies.</a>
+          We thank the authors for sharing the template.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+</footer>
+
+</body>
+</html>
