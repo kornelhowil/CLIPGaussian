@@ -14,6 +14,8 @@ import sys
 import uuid
 from argparse import ArgumentParser, Namespace
 from random import randint
+sys.path.append("..")
+
 
 import torch
 from torchvision import models, transforms
@@ -25,12 +27,12 @@ from CLIP.utils.image_utils import img_normalize, clip_normalize
 
 from arguments import ModelParams, PipelineParams, OptimizationParams
 from arguments import get_combined_args_force
-from gaussian_renderer import render, network_gui
-from games.dynamic.pcd_splatting.scene.pcd_gaussian_model import PcdGaussianModel
-from scene import Scene
-from utils.general_utils import safe_state, get_linear_noise_func
-from utils.image_utils import psnr
-from utils.loss_utils import l1_loss
+from D_MiSo.gaussian_renderer import render, network_gui
+from D_MiSo.games.dynamic.pcd_splatting.scene.pcd_gaussian_model import PcdGaussianModel
+from D_MiSo.scene import Scene
+from D_MiSo.utils.general_utils import safe_state, get_linear_noise_func
+from D_MiSo.utils.image_utils import psnr
+from D_MiSo.utils.loss_utils import l1_loss
 
 
 try:
