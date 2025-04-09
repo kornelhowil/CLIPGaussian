@@ -82,18 +82,18 @@ class PipelineParams(ParamGroup):
 
 class OptimizationParams(ParamGroup):
     def __init__(self, parser):
-        self.iterations = 30_000
+        self.iterations = 5_000
         self.warm_up = 0
-        self.position_lr_init = 0.0001
-        self.position_lr_final = 0.00001
+        self.position_lr_init = 0.00001
+        self.position_lr_final = 0.000001
         self.position_lr_delay_mult = 0.01
-        self.position_lr_max_steps = 30_000
-        self.pseudomesh_lr_init = 0.00016
-        self.pseudomesh_lr_final = 0.000016
+        self.position_lr_max_steps = 5_000
+        self.pseudomesh_lr_init = 0.00001
+        self.pseudomesh_lr_final = 0.000001
         self.pseudomesh_lr_delay_mult = 0.01
-        self.pseudomesh_lr_max_steps = 30_000
-        self.deform_lr_max_steps = 40_000
-        self.feature_lr = 0.0025
+        self.pseudomesh_lr_max_steps = 5_000
+        self.deform_lr_max_steps = 5_000
+        self.feature_lr = 0.0015
         self.opacity_lr = 0.05
         self.scaling_lr = 0.001
         self.rotation_lr = 0.001
@@ -102,16 +102,16 @@ class OptimizationParams(ParamGroup):
         self.gamma = 0
         self.densification_interval = 100
         self.opacity_reset_interval = 3000
-        self.densify_from_iter = 500
-        self.densify_until_iter = 35_000
+        self.densify_from_iter = 0
+        self.densify_until_iter = 0
         self.densify_grad_threshold = 0.0002
         self.alpha_lr = 0.001
         self.random_background = False
         self.lambda_c = 0.8
         self.lambda_dir = 5
         self.lambda_patch = 90
-        self.crop_size = 128
-        self.num_crops = 64
+        self.crop_size = 250
+        self.num_crops = 2
         super().__init__(parser, "Optimization Parameters")
 
 
@@ -159,4 +159,10 @@ def get_combined_args_force(parser: ArgumentParser):
             merged_dict[k] = v
 
     merged_dict["model_path"] = args_cmdline.model_path
+    if args_cmdline.source_path != None:
+        merged_dict["source_path"] = args_cmdline.source_path
+    if args_cmdline.resolution != None:
+        merged_dict["resolution"] = args_cmdline.resolution
+    if args_cmdline.data_device != None:
+        merged_dict["data_device"] = args_cmdline.resolution
     return Namespace(**merged_dict)
