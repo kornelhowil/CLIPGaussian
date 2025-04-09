@@ -1,6 +1,7 @@
 <div align="center">
 <h1> CLIPGaussians: for 4D scene</h1>
 
+<div align="left">
 
 # Installation
 
