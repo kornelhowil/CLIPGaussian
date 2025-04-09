@@ -1,6 +1,3 @@
-[submodule "4D/D-MiSo"]
-	path = 4D/D-MiSo
-	url = https://github.com/waczjoan/D-MiSo
 [submodule "4D/submodules/D-MiSo"]
 	path = 4D/submodules/D-MiSo
 	url = https://github.com/waczjoan/D-MiSo
