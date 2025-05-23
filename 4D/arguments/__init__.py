@@ -1,9 +1,10 @@
+
 #
 # Copyright (C) 2023, Inria
 # GRAPHDECO research group, https://team.inria.fr/graphdeco
 # All rights reserved.
 #
-# This software is free for non-commercial, research and evaluation use 
+# This software is free for non-commercial, research and evaluation use
 # under the terms of the LICENSE.md file.
 #
 # For inquiries contact  george.drettakis@inria.fr
@@ -111,6 +112,7 @@ class OptimizationParams(ParamGroup):
         self.lambda_dir = 5
         self.lambda_patch = 90
         self.crop_size = 250
+        self.lambda_bg = 50
         self.num_crops = 2
         super().__init__(parser, "Optimization Parameters")
 
@@ -164,5 +166,5 @@ def get_combined_args_force(parser: ArgumentParser):
     if args_cmdline.resolution != None:
         merged_dict["resolution"] = args_cmdline.resolution
     if args_cmdline.data_device != None:
-        merged_dict["data_device"] = args_cmdline.resolution
+        merged_dict["data_device"] = args_cmdline.data_device
     return Namespace(**merged_dict)

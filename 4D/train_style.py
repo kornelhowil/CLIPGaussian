@@ -27,12 +27,12 @@ from CLIP.utils.image_utils import img_normalize, clip_normalize
 
 from arguments import ModelParams, PipelineParams, OptimizationParams
 from arguments import get_combined_args_force
-from D_MiSo.gaussian_renderer import render, network_gui
-from D_MiSo.games.dynamic.pcd_splatting.scene.pcd_gaussian_model import PcdGaussianModel
-from D_MiSo.scene import Scene
-from D_MiSo.utils.general_utils import safe_state, get_linear_noise_func
-from D_MiSo.utils.image_utils import psnr
-from D_MiSo.utils.loss_utils import l1_loss
+from models.D-MiSo.gaussian_renderer import render, network_gui
+from models.D-MiSo.games.dynamic.pcd_splatting.scene.pcd_gaussian_model import PcdGaussianModel
+from models.D-MiSo.scene import Scene
+from models.D-MiSo.utils.general_utils import safe_state, get_linear_noise_func
+from models.D-MiSo.utils.image_utils import psnr
+from models.D-MiSo.utils.loss_utils import l1_loss
 
 
 try:
@@ -315,7 +315,6 @@ def training_report(tb_writer, iteration, loss_d, loss, l1_loss, elapsed, testin
                         scene.gaussians.pseudomesh[:, 1].detach(),
                         scene.gaussians.pseudomesh[:, 2].detach(),
                         time_input  # ,
-                        # scene.gaussians.pseudomesh[:, 3].detach()
                     )
                     image = torch.clamp(
                         renderFunc(viewpoint, scene.gaussians, *renderArgs, d_v1, d_v2, d_v3, d_rot, time_input,
