@@ -3,5 +3,6 @@
 output
 Dockerfile
 .DS_Store
+.idea
 *.log
 *.err
