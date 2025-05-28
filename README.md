@@ -1,7 +1,7 @@
 <div align="center">
 <img src="./assets/teaser.jpg" />
-<h1> CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting</h1>
-Kornel Howil*, Joanna Waczy?ska*, Piotr Borycki, Tadeusz Dziarmaga, Marcin Mazur, Przemys?aw Spurek
+<h1>CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting</h1>
+Kornel Howil*, Joanna Waczyńska*, Piotr Borycki, Tadeusz Dziarmaga, Marcin Mazur, Przemysław Spurek
 
 (* denotes equal contribution)
 
@@ -36,7 +36,7 @@ If you find our work useful, please consider citing:
 ## Acknowledgments
 Our code was developed based on [gaussian-splatting](https://github.com/graphdeco-inria/gaussian-splatting) (3D), [D-MiSo](https://github.com/waczjoan/D-MiSo) (4D), [MiraGe](https://github.com/waczjoan/MiraGe/) (2D) and [VeGaS](https://github.com/gmum/VeGaS/) (Video).
 
-The project �Effective rendering of 3D objects using Gaussian Splatting in an Augmented Reality environment� (FENG.02.02-IP.05-0114/23) is carried out within the First Team programme of the Foundation for Polish Science co-financed by the European Union under the European Funds for Smart Economy 2021-2027 (FENG).
+The project “Effective rendering of 3D objects using Gaussian Splatting in an Augmented Reality environment” (FENG.02.02-IP.05-0114/23) is carried out within the First Team programme of the Foundation for Polish Science co-financed by the European Union under the European Funds for Smart Economy 2021-2027 (FENG).
 <div align="center">
 <img src="./assets/fnp.png" />
 </div>
