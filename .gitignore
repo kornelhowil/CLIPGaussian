@@ -1,0 +1,8 @@
+*__pycache__*
+*mirror*
+output
+Dockerfile
+.DS_Store
+.idea
+*.log
+*.err
