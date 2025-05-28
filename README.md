@@ -1,7 +1,7 @@
 <div align="center">
 <img src="./assets/teaser.jpg" />
 <h1> CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting</h1>
-Kornel Howil*, Joanna Waczynska*, Piotr Borycki, Tadeusz Dziarmaga, Marcin Mazur, Przemys³aw Spurek
+Kornel Howil*, Joanna Waczy?ska*, Piotr Borycki, Tadeusz Dziarmaga, Marcin Mazur, Przemys?aw Spurek
 
 (* denotes equal contribution)
 
