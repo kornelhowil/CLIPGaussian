@@ -1,14 +1,15 @@
 window.HELP_IMPROVE_VIDEOJS = false;
 
-var INTERP_BASE = "https://homes.cs.washington.edu/~kpar/nerfies/interpolation/stacked";
+var INTERP_BASE = "./assets/interpolation";
 var NUM_INTERP_FRAMES = 240;
 
 var interp_images = [];
 function preloadInterpolationImages() {
   for (var i = 0; i < NUM_INTERP_FRAMES; i++) {
-    var path = INTERP_BASE + '/' + String(i).padStart(6, '0') + '.jpg';
+    var path = INTERP_BASE + '/' + String(i).padStart(5, '0') + '.png';
     interp_images[i] = new Image();
     interp_images[i].src = path;
+    console.log('Preloading image: ' + path);
   }
 }
 
@@ -40,7 +41,6 @@ $(document).ready(function() {
 
 		// Initialize all div with carousel class
     var carousels = bulmaCarousel.attach('.carousel', options);
-    console.log(carousels);
     // Loop on each carousel initialized
     for(var i = 0; i < carousels.length; i++) {
     	// Add listener to  event
@@ -65,13 +65,13 @@ $(document).ready(function() {
         player.currentTime = player.duration / 100 * this.value;
       })
     }, false);*/
-    // preloadInterpolationImages();
+    preloadInterpolationImages();
 
-    // $('#interpolation-slider').on('input', function(event) {
-    //   setInterpolationImage(this.value);
-    // });
-    // setInterpolationImage(0);
-    // $('#interpolation-slider').prop('max', NUM_INTERP_FRAMES - 1);
+    $('#interpolation-slider').on('input', function(event) {
+       setInterpolationImage(this.value);
+     });
+     setInterpolationImage(0);
+     $('#interpolation-slider').prop('max', NUM_INTERP_FRAMES - 1);
 
     bulmaSlider.attach();
 

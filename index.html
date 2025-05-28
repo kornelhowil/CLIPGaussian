@@ -151,6 +151,15 @@
 
 
 <!-- first row -->
+ <section class="section" id="Interpolation">
+<div class="container is-max-desktop">
+<h3 class="title is-4">Universal Style Transfer</h3>
+<div class="content has-text-justified">
+          <p>
+           CLIPGaussian is the first plug-in style transfer model for Gaussian Splatting,
+            enabling image- and text-guided stylization across 2D, video, 3D, and 4D data without retraining the base model.
+          </p>
+</div>
 <section class="hero is-light is-small">
   <div class="hero-body">
     <div class="has-text-centered"> <p> <b>3D</b> </p> </div>
@@ -467,6 +476,53 @@
       </div>
   </div>
 </section>
+</div>
+</section>
+
+<!-- Animation. -->
+ <section class="section" id="Interpolation">
+  <div class="container is-max-desktop content">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <!-- Interpolating. -->
+        <h3 class="title is-4">Interpolation</h3>
+        <div class="content has-text-justified">
+          <p>
+           CLIPGaussian does not perform densification or alter the number of Gaussian components.
+          As a result, the stylized objects retain the same size as the original. 
+          Moreover, this property enables style interpolation by linearly interpolating the parameters of each Gaussian component.
+          </p>
+        </div>
+        <div class="columns is-vcentered interpolation-panel">
+          <div class="column is-3 has-text-centered">
+            <img src="./assets/interpolation/00000.png"
+                 class="interpolation-image"
+                 alt="Interpolate start reference image."/>
+            <p>Black marble</p>
+          </div>
+          <div class="column interpolation-video-column">
+            <div id="interpolation-image-wrapper">
+              Loading...
+            </div>
+            <input class="slider is-fullwidth is-large is-info"
+                   id="interpolation-slider"
+                   step="1" min="0" max="100" value="0" type="range">
+          </div>
+          <div class="column is-3 has-text-centered">
+            <img src="./assets/interpolation/00239.png"
+                 class="interpolation-image"
+                 alt="Interpolation end reference image."/>
+            <p class="is-bold">Green crystal</p>
+          </div>
+        </div>
+        <br/>
+        <!--/ Interpolating. -->
+
+      </div>
+    </div>
+    <!--/ Animation. -->
+    </div>
+    </section>
 
 
 <section class="section" id="BibTeX">
