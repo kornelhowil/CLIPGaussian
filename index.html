@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting">
+  <meta name="keywords" content="Gaussian Splatting, Style Transfer, CLIP, Image Generation, Video Generation, Image Editing, Video Editing">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<!--   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+
+  </script> -->
+  <style>
+  .hr {width: 100%; height: 1px; margin: 48px 0; background-color: #d6dbdf;}
+  </style>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/bulma.min.css">
+  <link rel="stylesheet" href="./assets/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./assets/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./assets/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./assets/css/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+  <!-- custom css file  -->
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/twentytwenty.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop head">
+      <div class="columns is-centered">
+        <div class="column has-text-centered head">
+          <div class="logo">
+          <a href="index.html">
+          </a>
+          </div>
+          <br>
+
+          <h1 class="title is-3 publication-title"> 
+            <font color="#d13838">CLIPGaussian</font>: Universal and Multimodal Style Transfer Based on Gaussian Splatting
+          </h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/kornelhowil/">Kornel Howil</a><sup>*</sup>,&nbsp;&nbsp;</span>
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/joannawaczynska/">Joanna Waczyńska</a><sup>*</sup>,&nbsp;&nbsp;</span>
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/piotr-borycki-560052251/">Piotr Borycki</a>,&nbsp;&nbsp;</span> 
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/tadeusz-dziarmaga-716271251/">Tadeusz Dziarmaga</a>,&nbsp;&nbsp;</span> 
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?hl=en&user=HP_2sDgAAAAJ">Marcin Mazur</a>,&nbsp;&nbsp;</span> 
+            <span class="author-block">
+              <span class="author-block">
+                <a href="https://scholar.google.com/citations?hl=en&user=0kp0MbgAAAAJ">Przemysław Spurek</a></span>
+              <span class="author-block">
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Jagiellonian University </span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">*equal contribution</span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <!-- <span class="link-block">
+                <a href="./xx.pdf" target="_blank"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span> -->
+              <!-- arXiv Link. -->
+              <span class="link-block">
+                <a href="TODO" target="_blank"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block"> 
+                <a href="https://github.com/kornelhowil/CLIPGaussian" target="_blank"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>GitHub</span>
+                  </a>
+              </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container is-max-desktop">
+  <div class="column is-centered ">
+      <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                <source src="./assets/main/many_styles.mp4" type="video/mp4">
+              </video> 
+  </div>
+  <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+      <!-- <div class="column"> -->
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Gaussian Splatting (GS) has recently emerged as an efficient representation for rendering
+            3D scenes from 2D images and has been extended to images, videos, and dynamic 4D content.
+            However, applying style transfer to GS-based representations, especially beyond simple color changes, remains challenging.
+            In this work, we introduce CLIPGaussians, the first unified style transfer framework that supports text- and image-guided
+            stylization across multiple modalities: 2D images, videos, 3D objects, and 4D scenes. Our method operates directly on Gaussian
+            primitives and integrates into existing GS pipelines as a plug-in module, without requiring large generative models or
+            retraining from scratch. CLIPGaussians approach enables joint optimization of color and geometry in 3D and 4D settings,
+            and achieves temporal coherence in videos, while preserving a model size. We demonstrate superior style fidelity and consistency
+            across all tasks, validating CLIPGaussians as a universal and efficient solution for multimodal style transfer.
+          </p>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- first row -->
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="has-text-centered"> <p> <b>3D</b> </p> </div>
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Fire</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%" ratio="1.0">
+                  <source src="./assets/comp/3D/lego.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/3D/lego_fire.mp4" type="video/mp4">
+                </video> 
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Starry Night by Vincent van Gogh</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/3D/hotdog.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/3D/hotdog_starry_night.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Fauvism</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/3D/ficus.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/3D/ficus_fauvism.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+     
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Concrete</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/3D/mic.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/3D/mic_concrete.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+  </div>
+</section>
+
+
+<!-- second row -->
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="has-text-centered"> <p> <b>4D</b> </p> </div>
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Wood</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/trex.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/trex_wood.mp4" type="video/mp4">
+                </video> 
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Baroque</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/mutant.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/mutant_baroque.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>  
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Marble</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/standup.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/standup_marble.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+     
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="video-pair">
+              <div class="desc">Cubism</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/jumpingjacks.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/4D/jumpingjacks_cubism.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+  </div>
+</section>
+
+<!-- third row -->
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="has-text-centered"> <p> <b>Video</b> </p> </div>
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="0.55">
+            <div class="video-pair">
+              <div class="desc">Almond Blossoms by Vincent van Gogh</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/blackswan.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/blackswan_almond_blossom.mp4" type="video/mp4">
+                </video> 
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="0.55">
+            <div class="video-pair">
+              <div class="desc">White wool</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/bear.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/bear_white_wool.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>  
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="0.55">
+            <div class="video-pair">
+              <div class="desc">Man on a Balcony by Albert Gleizes</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/camel.mp4" type="video/mp4">
+                </video> 
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/camel_man_on_the_balcony.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+     
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="0.55">
+            <div class="video-pair">
+              <div class="desc">Flowers</div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/train.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="video">
+                <video muted autoplay="autoplay" playsInline loop="loop" width="100%">
+                  <source src="./assets/comp/Video/train_flowers.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+  </div>
+</section>
+
+<!-- fourth row -->
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="has-text-centered"> <p> <b>Images</b> </p> </div>
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="image-pair">
+              <div class="desc">Mosaic</div>
+              <div class="video">
+                <img src="./assets/comp/2D/8.png">
+              </div>
+              <div class="video">
+                <img src="./assets/comp/2D/8_mosaic.png">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="image-pair">
+              <div class="desc">Sand</div>
+              <div class="video">
+                <img src="./assets/comp/2D/kodim17.png">
+              </div>
+              <div class="video">
+                <img src="./assets/comp/2D/kodim17_sand.png">
+              </div>
+            </div>  
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="image-pair">
+              <div class="desc">The Scream by Edvard Munch</div>
+              <div class="video">
+                <img src="./assets/comp/2D/17.png"> 
+              </div>
+              <div class="video">
+                <img src="./assets/comp/2D/17_scream.jpg">
+              </div>
+            </div>
+          </div>
+        </div>
+
+     
+        <div class="item">
+          <div class="twentytwenty-container" data-orientation="horizontal" ratio="1.0">
+            <div class="image-pair">
+              <div class="desc">Beksinski painting</div>
+              <div class="video">
+                <img src="./assets/comp/2D/11.png">
+              </div>
+              <div class="video">
+                <img src="./assets/comp/2D/11_Beksinski_painting.png">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@misc{TODO,
+      title={TODO}, 
+      author={TODO},
+      year={TODO},
+      eprint={TODO},
+      archivePrefix={TODO},
+      primaryClass={TODO},
+      url={TODO}, 
+}</code></pre>
+  </div>
+</section>
+
+<section class="section" id="Acknowledgements">
+  <div class="container is-max-desktop content">
+    <h2 class="title">Acknowledgements</h2>
+    <!--The research was funded by the program Excellence Initiative - Research University at the Jagiellonian University in Kraków. -->
+    The project “Effective rendering of 3D objects using Gaussian Splatting in an Augmented Reality environment” (FENG.02.02-IP.05-0114/23) is carried out within the First Team programme of the Foundation for Polish Science co-financed by the European Union under the European Funds for Smart Economy 2021-2027 (FENG).
+    <img src="./assets/main/fnp.png" alt="FNP">
+  </div>
+  
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="TODO" target="_blank">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/kornelhowil/CLIPGaussian" target="_blank">
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <div class="columns is-centered"><p>
+            This website is based on this website's <a href="https://github.com/sczhou/ProPainter_website" target="_blank">source code</a>. 
+            It's template is based on <a href="https://github.com/nerfies/nerfies.github.io" target="_blank">this</a>. 
+            Thank you!
+          </p></div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</footer>
+
+  <!-- custom js file  -->
+  <!-- <script defer src="./assets/js/fontawesome.all.min.js"></script> -->
+  <script src="./assets/js/bulma-carousel.min.js"></script>
+  <script src="./assets/js/bulma-slider.min.js"></script>
+  <script src="./assets/js/index.js"></script>
+  <script src="./assets/js/jquery.event.move.js"></script>
+  <script src="./assets/js/jquery.twentytwenty.js"></script>
+  <script src="./assets/js/jquery.twentytwentysingle.js"></script>
+  <script>
+  $(function(){
+    $(".twentytwenty-container").twentytwenty();
+    // $(".twentytwenty-container", "#results-carousel").twentytwenty({default_offset_pct: 0.55, ratio: 0.55});
+  });
+  </script>
+  <script src="assets/js/script.js"></script>
+
+  <script>
+      new BeforeAfter({
+          id: '#example1'
+      });
+      new BeforeAfter({
+          id: '#example2'
+      });
+      new BeforeAfter({
+          id: '#example4'
+      });
+  </script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const videoPairs = document.querySelectorAll(".video-pair");
+  videoPairs.forEach(pair => {
+    const [videoA, videoB] = pair.querySelectorAll("video");
+    let loaded = 0;
+    
+    const checkReady = () => {
+      loaded++;
+      if (loaded === 2) {
+        synchronizePair(videoA, videoB);
+      }
+    };
+
+    videoA.addEventListener("loadeddata", checkReady);
+    videoB.addEventListener("loadeddata", checkReady);
+  });
+
+  function synchronizePair(videoA, videoB) {
+    // Ensure both are at time zero
+    videoA.currentTime = 0;
+    videoB.currentTime = 0;
+
+    // Set up periodic resync to prevent drift
+    setInterval(() => {
+      const diff = Math.abs(videoA.currentTime - videoB.currentTime);
+      if (diff > 0.01) {
+        const avg = (videoA.currentTime + videoB.currentTime) / 2;
+        videoA.currentTime = avg;
+        videoB.currentTime = avg;
+      }
+    }, 100); // Resync every second
+
+    // Start together
+   // Promise.all([videoA.play(), videoB.play()])
+   //   .catch(err => {
+    //    console.warn("Autoplay may be blocked by browser:", err);
+    //  });
+  }
+});
+</script>
+</body>
+</html>
