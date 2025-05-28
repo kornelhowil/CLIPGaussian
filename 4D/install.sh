@@ -1,10 +1,8 @@
 mkdir models
 cd models
-git clone git@github.com:waczjoan/D-MiSo.git --recursive
-git checkout rasterizer
-
+#git clone git@github.com:waczjoan/D-MiSo.git --recursive  dmisomodel
+cd dmisomodel
 sh install.sh
-
 cd ..
-
-pip install -r requirements.txt
+cd ..
+conda run -n dmiso pip install -r requirements.txt

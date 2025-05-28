@@ -1,6 +1,10 @@
-PYTHONPATH=
-python models/D-MiSo/train.py -s data/trex -m output/trex --batch 4 -w
+conda activate dmiso
+cd models/dmisomodel
+export PYTHONPATH=.
+python train.py -s ../../data/trex -m ../../output/trex --batch 4 -w
+python render.py  -m ../../output/trex
 
-
-PYTHONPATH=
+cd ..
+cd ..
+export PYTHONPATH=.
 python train_style.py -s data/trex -m output_style/trex  --model_output output/trex --iterations 5000 --batch 4 --style_prompt "Wood" -w

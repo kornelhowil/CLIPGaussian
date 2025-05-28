@@ -94,8 +94,10 @@ class OptimizationParams(ParamGroup):
         self.pseudomesh_lr_delay_mult = 0.01
         self.pseudomesh_lr_max_steps = 5_000
         self.deform_lr_max_steps = 5_000
-        self.feature_lr = 0.0015
+        self.feature_lr = 0.0025
+        self.attached_feature_lr = 0.0025
         self.opacity_lr = 0.05
+        self.attached_opacity_lr = 0.05
         self.scaling_lr = 0.001
         self.rotation_lr = 0.001
         self.percent_dense = 0.01

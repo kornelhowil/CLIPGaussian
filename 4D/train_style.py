@@ -14,7 +14,8 @@ import sys
 import uuid
 from argparse import ArgumentParser, Namespace
 from random import randint
-sys.path.append("..")
+sys.path += ['..','models/dmisomodel']
+
 
 
 import torch
@@ -27,12 +28,12 @@ from CLIP.utils.image_utils import img_normalize, clip_normalize
 
 from arguments import ModelParams, PipelineParams, OptimizationParams
 from arguments import get_combined_args_force
-from models.D-MiSo.gaussian_renderer import render, network_gui
-from models.D-MiSo.games.dynamic.pcd_splatting.scene.pcd_gaussian_model import PcdGaussianModel
-from models.D-MiSo.scene import Scene
-from models.D-MiSo.utils.general_utils import safe_state, get_linear_noise_func
-from models.D-MiSo.utils.image_utils import psnr
-from models.D-MiSo.utils.loss_utils import l1_loss
+from models.dmisomodel.gaussian_renderer import render, network_gui # type: ignore
+from models.dmisomodel.games.dynamic.pcd_splatting.scene.pcd_gaussian_model import PcdGaussianModel # type: ignore
+from models.dmisomodel.scene import Scene # type: ignore
+from models.dmisomodel.utils.general_utils import safe_state, get_linear_noise_func # type: ignore
+from models.dmisomodel.utils.image_utils import psnr # type: ignore
+from models.dmisomodel.utils.loss_utils import l1_loss # type: ignore
 
 
 try:

@@ -4,8 +4,8 @@ output
 build
 tensorboard_3d
 screenshots
-.idea
 data
-outputs
-4dmodels
+output
+output_style
+models
 
