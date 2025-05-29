@@ -28,72 +28,109 @@ To install the required Python packages we used 3.8 python
 
 TODO
 
+## Fast start and train
+To prepare repository and `dmiso` conda env, run:
+
+```shell
+sh install_and_prepare_env.sh
+```
+
+To run trex example:
+```shell
+sh run_example.sh
+```
+
 ## Tutorial 
 In this section we describe more details, and make step by step how to train and render 4D Gaussian Splatting model (we use `D-MiSo`) using style.
-1. Go to [D-NeRF Datasets](https://www.dropbox.com/scl/fi/cdcmkufncwcikk1dzbgb4/data.zip?rlkey=n5m21i84v2b2xk6h7qgiu8nkg&e=2&dl=0), download `mutant` dataset and put it in to `data` directory. For example:
+Go to [D-NeRF Datasets](https://www.albertpumarola.com/research/D-NeRF/index.html), download `trex` dataset and put it in to `data` directory. For example:
 
 ```
-<D-MiSo>
-|---submodules
-|   |---<D-MiSo>
-|---data
-|   |---<mutant>
-|   |---<jumpingjacks>
-|   |---...
-|---train.py
-|---metrics.py
-|---...
+<CLIPGaussian>
+|---4D
+|   |---data
+|   |   |---<trex>
+|   |   |---<jumpingjacks>
+|   |   |---...
+|---train_style.py
+...
 ```
 
-2. Train model 4D model:
+1. Train model 4D model:
 
-  ```shell
-cd submodules/D-MiSo 
-python submodules/D-MiSo/train.py -s "../../data/mutant" -m "../../output/mutant" --iterations 80000 
-  --warm_up 2000  --densify_until_iter 5000   
-  --num_gauss 100000 --num_splat 25 --batch_size 10 -r 2 --is_blender
-  ```
+The first stage is to train the model reconstruction using a GS-based approach. For this, we selected [D-MiSo](https://github.com/waczjoan/D-MiSo) model 
+
+We propose two setup scenarios:
+- Option 1: Clone the base model repository first, then install our additional features. This approach allows you to customize your own model.
+- Option 2: First clone CLIPGaussian repo, then clone your model.
+
+In this tutorial, we’ll demonstrate the second approach.
+
+Open command line in ..../CLIPGaussians/4D and run:
+```shell
+sh install_and_prepare_env.sh
+```
+It should clone D-MiSo model and create `dmiso` env using conda.
+```
+<CLIPGaussian>
+|---4D
+|   |---data
+|   |   |---<trex>
+|   |   |---<jumpingjacks>
+|   |   |---...
+|   |---models
+|   |   |---<dmisomodel>
+|---train_style.py
+...
+```
+
+Train D-MiSo model to create reconstruction of `trex` object.
+
+```shell
+cd models/dmisomodel
+export PYTHONPATH=.
+python train.py -s ../../data/trex -m ../../output/trex --batch 8 -w --iterations 80000 --is_blender
+ ```
 Tip1: use `-w` if you want white background
 Tip2: ignore `-r 2` if you want resolution=1 (longer training time)
 
-In `output/jumpingjacks` you should find: 
+In `output/trex` you should find: 
+```
+<CLIPGaussian>
+|---4D
+|   |---data
+|   |   |---<trex>
+|   |   |---<jumpingjacks>
+|   |   |---...
+|   |---output
+|   |   |---<trex>
+|   |   |   |---deform
+|   |   |   |---time_net
+|   |   |   |---point_cloud
+|   |   |   |---xyz
+|   |   |   |---cfg_args
+|   |   |   |---...
+|   |---models
+|   |   |---<dmisomodel>
+|---train_style.py
+...
+```
+
+2. Train style  based on 4D model:
+
+
+
+you should find `output_style/trex_wood` you should find: 
 ```
 <4D>
 |---data
-|   |---<mutant>
+|   |---<trex>
 |   |   |---transforms_train.json
 |   |   |---...
 |---output
-|   |---<mutant>
-|   |   |---deform
-|   |   |---time_net
-|   |   |---point_cloud
-|   |   |---xyz
-|   |   |---cfg_args
-|   |   |---...
-|---...
-```
-
-3. Train style based on 4D model:
-
-  ```shell
-cd ../..
-python train_styles.py -m "output_style/mutant" --model_output "output/mutant" --iterations 5000 --batch_size 4 
-  --style_prompt "Fire" --feature_lr 0.0025 --crop_size 64 --num_crops 64 
- ```
-
-you should find `output_style/mutant` you should find: 
-```
-<4D>
-|---data
-|   |---<mutant>
-|   |   |---transforms_train.json
-|   |   |---...
-|---output
-|   |---<mutant>
+|   |---<trex>
 |   |   |---...
 |---output_style
-|   |---<mutant>
+|   |---<trex>
 |   |   |---deform
 |   |   |---time_net
 |   |   |---point_cloud
@@ -106,8 +143,11 @@ you should find `output_style/mutant` you should find:
 4. Render styled images:
  
 ```shell
- python render.py -m output_style/mutant 
-  ```
+cd models/dmisomodel
+export PYTHONPATH=.
+python render.py  -m path/4D/output_style/trex_wood --iteration 5000
+ ```
+
 In `output/jumpingjacks` you should find: 
 ```
 <4D>
@@ -116,11 +156,11 @@ In `output/jumpingjacks` you should find:
 |---output
 |   |---...
 |---output_style
-|   |---<mutant>
+|   |---<trex_wood>
 |   |   |---point_cloud
 |   |   |---cfg_args
 |   |   |---train
-|   |   |   |---<ours_best>
+|   |   |   |---<5000>
 |   |   |---results.json
 |   |   |---...
 |---...
