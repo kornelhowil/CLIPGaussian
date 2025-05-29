@@ -35,7 +35,7 @@ sh install_and_prepare_env.sh
 
 To run trex example:
 ```shell
-sh run_example.sh
+sh run_example.sh #please check if paths are correct, sometimes full path is needed.
 ```
 
 ## Tutorial 
