@@ -9,24 +9,22 @@ TODO
 
 ### Requirements
 
-- Conda (recommended)
-- CUDA toolkit 11 for PyTorch extensions (we used 11.8)
+- Conda
+- CUDA toolkit 11 for PyTorch extensions (we used 11.8); see base model requirements, here [D-MiSo](https://github.com/waczjoan/D-MiSo)
 
-## Clone the Repository with submodules
+## Clone the Repository
 
 ```shell
 # SSH
-git clone git@github.com:kornelhowil/CLIPGaussians.git --recursive
+git clone git@github.com:kornelhowil/CLIPGaussians.git
 ```
 or
 ```shell
 # HTTPS
-git clone https://github.com/kornelhowil/CLIPGaussians.git --recursive
+git clone https://github.com/kornelhowil/CLIPGaussians.git
 ```
 
-To install the required Python packages we used 3.8 python 
-
-TODO
+To install the required Python packages we used 3.8 python
 
 ## Fast start and train
 To prepare repository and `dmiso` conda env, run:
@@ -55,7 +53,7 @@ Go to [D-NeRF Datasets](https://www.albertpumarola.com/research/D-NeRF/index.htm
 ...
 ```
 
-1. Train model 4D model:
+1. Train model 4D model (stage 1):
 
 The first stage is to train the model reconstruction using a GS-based approach. For this, we selected [D-MiSo](https://github.com/waczjoan/D-MiSo) model 
 
@@ -69,7 +67,7 @@ Open command line in ..../CLIPGaussians/4D and run:
 ```shell
 sh install_and_prepare_env.sh
 ```
-It should clone D-MiSo model and create `dmiso` env using conda.
+It should clone D-MiSo model and create `dmiso` env using conda and additional install `requirements.txt`
 ```
 <CLIPGaussian>
 |---4D
@@ -115,11 +113,19 @@ In `output/trex` you should find:
 ...
 ```
 
-2. Train style  based on 4D model:
+2. Train style  based on 4D model: (stage 2)
 
+We have: 
+    - dataset (images and camera info in case of blender dataset) in `data/trex`
+    - reconstruction object model created using Gaussian-Splatting based model D-MiSo in `output/trex`
 
+We would like to created styled object trex by prompt `wood` using `output/trex`. New styled model will be saved in `output_styled/trex`:
 
-you should find `output_style/trex_wood` you should find: 
+```shell
+python train_style.py -s data/trex -m output_style/trex  --model_output output/trex --iterations 5000 --batch 4 --style_prompt "Wood" -w
+```
+
+you should find `output_style/trex_wood`: 
 ```
 <4D>
 |---data
@@ -140,7 +146,9 @@ you should find `output_style/trex_wood` you should find:
 |---...
 ```
 
-4. Render styled images:
+If you would like use image as a referenced style please use `--style_image path_to_image` instead of `style_prompt` 
+
+5. Render styled images:
  
 ```shell
 cd models/dmisomodel

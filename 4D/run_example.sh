@@ -12,6 +12,7 @@ cd ..
 export PYTHONPATH=.
 python train_style.py -s data/trex -m output_style/trex  --model_output output/trex --iterations 5000 --batch 4 --style_prompt "Wood" -w
 
+# render style
 cd models/dmisomodel
 export PYTHONPATH=.
 python render.py  -m ../../output_style/trex_wood --iteration 5000

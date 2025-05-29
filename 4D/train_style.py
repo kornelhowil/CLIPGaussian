@@ -370,7 +370,7 @@ if __name__ == "__main__":
     parser.add_argument("--style_prompt", type=str, default=None)
     parser.add_argument("--style_image", type=str, default=None)
     parser.add_argument("--object_prompt", type=str, default="a Photo")
-    parser.add_argument('--batch_size', type=int, default=8)
+    parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument("--model_output", type=str, default=None)
 
     args = parser.parse_args(sys.argv[1:])
