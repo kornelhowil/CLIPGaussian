@@ -1,4 +1,3 @@
-
 #
 # Copyright (C) 2023, Inria
 # GRAPHDECO research group, https://team.inria.fr/graphdeco
@@ -94,9 +93,9 @@ class OptimizationParams(ParamGroup):
         self.pseudomesh_lr_delay_mult = 0.01
         self.pseudomesh_lr_max_steps = 5_000
         self.deform_lr_max_steps = 5_000
-        self.feature_lr = 0.0025
+        self.feature_lr = 0.0
         self.attached_feature_lr = 0.0025
-        self.opacity_lr = 0.05
+        self.opacity_lr = 0.0
         self.attached_opacity_lr = 0.05
         self.scaling_lr = 0.001
         self.rotation_lr = 0.001
@@ -113,9 +112,9 @@ class OptimizationParams(ParamGroup):
         self.lambda_c = 0.8
         self.lambda_dir = 5
         self.lambda_patch = 90
-        self.crop_size = 250
-        self.lambda_bg = 50
-        self.num_crops = 2
+        self.crop_size = 128
+        self.lambda_bg = 0
+        self.num_crops = 32
         super().__init__(parser, "Optimization Parameters")
 
 
