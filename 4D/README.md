@@ -1,11 +1,13 @@
 <div align="center">
-<h1> CLIPGaussians: for 4D scene</h1>
-
+<h1> CLIPGaussian: for 4D scene</h1>
 <div align="left">
 
-# Installation
+<div align="center">
 
-TODO
+[![arXiv](https://img.shields.io/badge/arXiv-2505.22854-red)](https://arxiv.org/abs/2505.22854)  [![ProjectPage](https://img.shields.io/badge/Website-kornelhowil.github.io/CLIPGaussian/-blue)](https://kornelhowil.github.io/CLIPGaussian/) [![GitHub Repo stars](https://img.shields.io/github/stars/kornelhowil/CLIPGaussian.svg?style=social&label=Star&maxAge=60)](https://github.com/kornelhowil/CLIPGaussian)
+</div>
+
+
 
 ### Requirements
 
@@ -122,7 +124,7 @@ We have:
 We would like to created styled object trex by prompt `wood` using `output/trex`. New styled model will be saved in `output_styled/trex`:
 
 ```shell
-python train_style.py -s data/trex -m output_style/trex  --model_output output/trex --iterations 5000 --batch 4 --style_prompt "Wood" -w
+python train_style.py -s data/trex -m output_style/trex  --model_output output/trex --batch 4 --iterations 5000 --batch 4 --style_prompt "Wood" -w
 ```
 
 you should find `output_style/trex_wood`: 
@@ -153,7 +155,7 @@ If you would like use image as a referenced style please use `--style_image path
 ```shell
 cd models/dmisomodel
 export PYTHONPATH=.
-python render.py  -m path/4D/output_style/trex_wood --iteration 5000
+python render.py  -m path/4D/output_style/trex_wood --iteration 5000 
  ```
 
 In `output/jumpingjacks` you should find: 
@@ -173,3 +175,29 @@ In `output/jumpingjacks` you should find:
 |   |   |---...
 |---...
 ```
+
+If you find our work useful, please consider citing:
+<h4 class="title">CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting
+
+</h4>
+    <pre><code>@Article{howil2025clipgaussian,
+      author={Kornel Howil and Joanna Waczyńska and Piotr Borycki and Tadeusz Dziarmaga and Marcin Mazur and Przemysław Spurek},
+      title={CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting},
+      year={2025},
+      eprint={2505.22854},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2505.22854}, 
+}
+</code></pre>
+
+</div>
+
+</section>
+
+## Acknowledgments
+
+The project “Effective rendering of 3D objects using Gaussian Splatting in an Augmented Reality environment” (FENG.02.02-IP.05-0114/23) is carried out within the First Team programme of the Foundation for Polish Science co-financed by the European Union under the European Funds for Smart Economy 2021-2027 (FENG).
+<div align="center">
+<img src="./assets/fnp.png" />
+</div>
