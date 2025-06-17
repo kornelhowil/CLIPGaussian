@@ -199,5 +199,5 @@ If you find our work useful, please consider citing:
 
 The project “Effective rendering of 3D objects using Gaussian Splatting in an Augmented Reality environment” (FENG.02.02-IP.05-0114/23) is carried out within the First Team programme of the Foundation for Polish Science co-financed by the European Union under the European Funds for Smart Economy 2021-2027 (FENG).
 <div align="center">
-<img src="./assets/fnp.png" />
+<img src="..//assets/fnp.png" />
 </div>
