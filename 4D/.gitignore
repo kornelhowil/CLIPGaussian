@@ -1,0 +1,11 @@
+*.pyc
+.vscode
+output
+build
+tensorboard_3d
+screenshots
+data
+output
+output_style
+models
+
