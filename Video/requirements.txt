@@ -1,7 +1,0 @@
-opencv-python
-tqdm
-matplotlib
-trimesh
-torch 
-torchvision
-plyfile
