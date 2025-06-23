@@ -57,7 +57,7 @@ def training(dataset, opt, pipe, args):
     gaussians.training_setup(opt)
 
     style_direction = CLIP.get_style_embedding(
-        args.style_prompt, args.style_image, args.object_prompt)
+        clip_model, args.style_prompt, args.style_image, args.object_prompt)
 
     cropper = transforms.Compose([
         transforms.RandomCrop(opt.crop_size)
@@ -131,8 +131,8 @@ def training(dataset, opt, pipe, args):
 
         # Content Loss
         gt_image = viewpoint_cam.original_image.cuda()
-        gt_features = viewpoint_cam.clip_features
-        render_features = viewpoint_cam.vgg_features
+        gt_features = viewpoint_cam.vgg_features
+        render_features =  get_features(img_normalize(image), VGG)
         loss_c = 0
         loss_c += torch.mean((gt_features['conv4_2'] -
                              render_features['conv4_2']) ** 2)
@@ -145,7 +145,7 @@ def training(dataset, opt, pipe, args):
         image_features = clip_model.encode_image(clip_normalize(img_proc))
         image_features /= (image_features.clone().norm(dim=-1, keepdim=True))
 
-        source_features = clip_features[viewpoint_cam.image_name]
+        source_features = viewpoint_cam.clip_features
         img_direction = (image_features-source_features)
         img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
 
@@ -311,18 +311,9 @@ if __name__ == "__main__":
     # Start GUI server, configure and run training
     # network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-    start = timer()
     training(lp.extract(args),
              op.extract(args),
              pp.extract(args),
              args)
-    end = timer()
-    # Save the arguments to a file
-    with open(f'{args.model_path}/args.txt', 'w') as f:
-        for arg in args.__dict__:
-            f.write(f'{arg}: {args.__dict__[arg]}\n')
-    with open(f'{args.model_path}/time.txt', 'w') as f:
-        time = (end - start) / 60
-        f.write(f'{time}\n')
     # All done
     print("\nTraining complete.")
