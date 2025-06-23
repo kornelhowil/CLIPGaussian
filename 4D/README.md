@@ -18,12 +18,12 @@
 
 ```shell
 # SSH
-git clone git@github.com:kornelhowil/CLIPGaussians.git
+git clone git@github.com:kornelhowil/CLIPGaussian.git
 ```
 or
 ```shell
 # HTTPS
-git clone https://github.com/kornelhowil/CLIPGaussians.git
+git clone https://github.com/kornelhowil/CLIPGaussian.git
 ```
 
 To install the required Python packages we used 3.8 python
@@ -65,7 +65,7 @@ We propose two setup scenarios:
 
 In this tutorial, we’ll demonstrate the second approach.
 
-Open command line in ..../CLIPGaussians/4D and run:
+Open command line in ..../CLIPGaussian/4D and run:
 ```shell
 sh install_and_prepare_env.sh
 ```
