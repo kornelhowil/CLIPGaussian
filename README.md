@@ -14,7 +14,7 @@ Kornel Howil*, Joanna Waczyńska*, Piotr Borycki, Tadeusz Dziarmaga, Marcin Mazu
 This repository contains work related to 4D, 3D, Video, and 2D object editing.
 - [ ] Published for:
   - [x] 4D [Link](https://github.com/kornelhowil/CLIPGaussian/tree/main/4D)
-  - [ ] 3D
+  - [x] 3D [Link](https://github.com/kornelhowil/CLIPGaussian/tree/main/3D)
   - [ ] Video
   - [ ] 2D
 - [x] Project pages with examples
