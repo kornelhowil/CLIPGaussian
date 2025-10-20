@@ -19,6 +19,7 @@ This repository contains work related to 4D, 3D, Video, and 2D object editing.
   - [ ] 2D
 - [x] Project pages with examples
 - [x] Paper published on arXiv
+- [x] Paper accepted to NeurIPS 2025
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">Citations</h2>
