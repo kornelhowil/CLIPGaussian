@@ -63,14 +63,13 @@ python models/vegas/render.py -m output_style/video_stylized
 
 If you find our work useful, please consider citing:
 <h4 class="title">CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting</h4>
-<pre><code>@Article{howil2025clipgaussian,
-      author={Kornel Howil and Joanna Waczyńska and Piotr Borycki and Tadeusz Dziarmaga and Marcin Mazur and Przemysław Spurek},
-      title={CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting},
-      year={2025},
-      eprint={2505.22854},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2505.22854}, 
+    <pre><code>@inproceedings{
+  howil2025clipgaussian,
+  title={CLIPGaussian: Universal and Multimodal Style Transfer Based on Gaussian Splatting},
+  author={Kornel Howil and Joanna Waczynska and Piotr Borycki and Tadeusz Dziarmaga and Marcin Mazur and Przemys{\l}aw Spurek},
+  booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems},
+  year={2025},
+  url={https://openreview.net/forum?id=kjWB8iaO3l},
 }
 </code></pre>
 
