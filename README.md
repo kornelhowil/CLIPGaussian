@@ -15,7 +15,7 @@ This repository contains work related to 4D, 3D, Video, and 2D object editing.
 - [ ] Published for:
   - [x] 4D [Link](https://github.com/kornelhowil/CLIPGaussian/tree/main/4D)
   - [x] 3D [Link](https://github.com/kornelhowil/CLIPGaussian/tree/main/3D)
-  - [ ] Video
+  - [x] Video [Link](https://github.com/kornelhowil/CLIPGaussian/tree/main/Video)
   - [ ] 2D
 - [x] Project pages with examples
 - [x] Paper published on arXiv

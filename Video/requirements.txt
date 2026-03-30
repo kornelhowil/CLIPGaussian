@@ -1,0 +1,9 @@
+opencv-python
+tqdm
+matplotlib
+trimesh
+torch 
+torchvision
+plyfile
+imageio-ffmpeg
+git+https://github.com/openai/CLIP.git
